@@ -153,6 +153,10 @@
     <button onclick="actualizarFecha()">📅 Cambiar fecha</button>
     <h3>📋 Pedidos recibidos</h3>
     <div id="listaPedidos"><div class="cargando">⏳ Cargando pedidos...</div></div>
+    <h3>✍️ Marcar número manualmente</h3>
+<input type="number" id="numeroManual" placeholder="Número (ej: 45)" min="1" max="500">
+<input type="text" id="nombreManual" placeholder="Nombre de la persona">
+<button onclick="marcarManual()">🔴 Marcar como vendido</button>
     <h3>🔑 Cambiar contraseña</h3>
     <input type="password" id="nuevaPass" placeholder="Nueva contraseña">
     <button onclick="cambiarPass()">🔑 Cambiar</button>
@@ -358,7 +362,24 @@ window.actualizarFecha = function() {
   localStorage.setItem("fechaRifa", fecha);
   alert("✅ Fecha actualizada");
 }
-
+window.marcarManual = async function() {
+  const numero = parseInt(document.querySelector("#numeroManual").value);
+  const nombre = document.querySelector("#nombreManual").value;
+  if (!numero || !nombre) { alert("Pon el número y el nombre"); return; }
+  if (numero < 1 || numero > 500) { alert("El número debe ser entre 1 y 500"); return; }
+  await addDoc(collection(db, "pedidos"), {
+    nombre, celular: "Manual",
+    numeros: [numero],
+    boletos: 1,
+    total: "$60.000 COP",
+    comprobante: "",
+    fecha: new Date().toISOString()
+  });
+  document.querySelector("#numeroManual").value = "";
+  document.querySelector("#nombreManual").value = "";
+  alert(`✅ Número ${numero} marcado como vendido`);
+  cargarPedidos();
+}
 window.cambiarPass = function() {
   const nueva = document.querySelector("#nuevaPass").value;
   if (!nueva) { alert("Escribe una nueva contraseña"); return; }

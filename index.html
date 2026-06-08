@@ -210,7 +210,7 @@ async function subirComprobante() {
   const data = await response.json();
   if (data.success) {
     document.querySelector("#estadoSubida").textContent = "✅ Comprobante subido";
-    return data.data.url;
+    return data.data.display_url;
   }
   return null;
 }

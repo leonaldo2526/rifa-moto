@@ -157,6 +157,13 @@
 <input type="number" id="numeroManual" placeholder="Número (ej: 45)" min="1" max="500">
 <input type="text" id="nombreManual" placeholder="Nombre de la persona">
 <button onclick="marcarManual()">🔴 Marcar como vendido</button>
+    <h3>🎨 Color del inicio</h3>
+<input type="color" id="colorInicio" value="#1a0000">
+<button onclick="aplicarColorInicio()">Aplicar color inicio</button>
+
+<h3>🎨 Color del admin</h3>
+<input type="color" id="colorAdmin" value="#1a0000">
+<button onclick="aplicarColorAdmin()">Aplicar color admin</button>
     <h3>🔑 Cambiar contraseña</h3>
     <input type="password" id="nuevaPass" placeholder="Nueva contraseña">
     <button onclick="cambiarPass()">🔑 Cambiar</button>
@@ -380,7 +387,20 @@ window.marcarManual = async function() {
   alert(`✅ Número ${numero} marcado como vendido`);
   cargarPedidos();
 }
-window.cambiarPass = function() {
+window.aplicarColorInicio = function() {
+  const color = document.querySelector("#colorInicio").value;
+  document.querySelector("#inicio").style.background = color;
+  document.querySelector(".hero").style.background = color;
+  localStorage.setItem("colorInicioRifa", color);
+}
+
+window.aplicarColorAdmin = function() {
+  const color = document.querySelector("#colorAdmin").value;
+  document.querySelector("#panelAdmin").style.background = color;
+  document.querySelector("#loginAdmin").style.background = color;
+  localStorage.setItem("colorAdminRifa", color);
+}
+  window.cambiarPass = function() {
   const nueva = document.querySelector("#nuevaPass").value;
   if (!nueva) { alert("Escribe una nueva contraseña"); return; }
   contrasena = nueva;
@@ -395,7 +415,10 @@ const fechaGuardada = localStorage.getItem("fechaRifa");
 if (fotoGuardada) document.querySelector("#fotoPremio").src = fotoGuardada;
 if (nombreGuardado) document.querySelector("#nombrePremio").textContent = nombreGuardado;
 if (fechaGuardada) document.querySelector("#fechaSorteo").textContent = "📅 " + fechaGuardada;
-
+const colorInicioGuardado = localStorage.getItem("colorInicioRifa");
+const colorAdminGuardado = localStorage.getItem("colorAdminRifa");
+if (colorInicioGuardado) { document.querySelector("#inicio").style.background = colorInicioGuardado; document.querySelector(".hero").style.background = colorInicioGuardado; }
+if (colorAdminGuardado) { document.querySelector("#panelAdmin").style.background = colorAdminGuardado; document.querySelector("#loginAdmin").style.background = colorAdminGuardado; }
 cargarNumerosVendidos();
 </script>
 </body>

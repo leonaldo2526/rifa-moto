@@ -18,11 +18,20 @@
     .hero .fecha { color: #ff4444; font-size: 16px; margin-bottom: 10px; }
     .hero .precio-boleto { background: #ff4444; color: white; padding: 8px 20px; border-radius: 25px; display: inline-block; font-size: 16px; font-weight: bold; }
     .seccion { padding: 20px; }
-    .seccion h2 { color: #ff4444; font-size: 22px; text-align: center; margin-bottom: 20px; text-transform: uppercase; }
-    .contador { display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 10px; }
-    .btn-contador { background: #ff4444; border: none; color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 24px; cursor: pointer; padding: 0; width: 45px; }
-    .num-boletos { font-size: 32px; font-weight: bold; color: white; min-width: 60px; text-align: center; }
-    .total-pagar { text-align: center; font-size: 22px; font-weight: bold; color: #ffcc00; margin-bottom: 20px; }
+    .seccion h2 { color: #ff4444; font-size: 22px; text-align: center; margin-bottom: 15px; text-transform: uppercase; }
+    .leyenda { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+    .leyenda-item { display: flex; align-items: center; gap: 5px; font-size: 13px; }
+    .leyenda-color { width: 20px; height: 20px; border-radius: 5px; }
+    .grilla-numeros { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 20px; }
+    .numero-btn { padding: 12px 5px; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; transition: transform 0.1s; }
+    .numero-btn:active { transform: scale(0.95); }
+    .numero-disponible { background: #16a34a; color: white; }
+    .numero-vendido { background: #dc2626; color: white; cursor: not-allowed; }
+    .numero-seleccionado { background: #ffcc00; color: #1a0000; }
+    .resumen-seleccion { background: #2d0000; border-radius: 15px; padding: 15px; margin-bottom: 20px; border: 2px solid #ff4444; }
+    .resumen-seleccion h3 { color: #ff4444; margin-bottom: 10px; }
+    .numeros-seleccionados { color: #ffcc00; font-size: 16px; margin-bottom: 10px; word-break: break-all; }
+    .total-pagar { text-align: center; font-size: 22px; font-weight: bold; color: #ffcc00; margin-bottom: 5px; }
     .form-grupo { margin-bottom: 15px; }
     .form-grupo label { display: block; color: #ff4444; font-weight: bold; margin-bottom: 8px; font-size: 14px; text-transform: uppercase; }
     .form-grupo input { width: 100%; padding: 12px; border: 2px solid #ff4444; border-radius: 10px; background: #2d0000; color: white; font-size: 15px; }
@@ -74,13 +83,19 @@
   </div>
 
   <div class="seccion">
-    <h2>🎟️ Lista de boletos</h2>
-    <div class="contador">
-      <button class="btn-contador" onclick="cambiarBoletos(-1)">−</button>
-      <div class="num-boletos" id="numBoletos">1</div>
-      <button class="btn-contador" onclick="cambiarBoletos(1)">+</button>
+    <h2>🎟️ Elige tus números</h2>
+    <div class="leyenda">
+      <div class="leyenda-item"><div class="leyenda-color" style="background:#16a34a"></div> Disponible</div>
+      <div class="leyenda-item"><div class="leyenda-color" style="background:#ffcc00"></div> Seleccionado</div>
+      <div class="leyenda-item"><div class="leyenda-color" style="background:#dc2626"></div> Vendido</div>
     </div>
-    <p class="total-pagar" id="totalPagar">Total: $60.000 COP</p>
+    <div class="grilla-numeros" id="grillaNomeros"></div>
+
+    <div class="resumen-seleccion" id="resumenSeleccion">
+      <h3>🎟️ Tus números seleccionados:</h3>
+      <div class="numeros-seleccionados" id="numerosSeleccionados">Ninguno aún</div>
+      <div class="total-pagar" id="totalPagar">Total: $0 COP</div>
+    </div>
 
     <div class="form-grupo">
       <label>👤 Nombres y Apellidos</label>
@@ -163,21 +178,59 @@ const db = getFirestore(app);
 
 const IMGBB_KEY = "25df5142405d78ec7149c277b95160f4";
 let contrasena = localStorage.getItem("contrasenaRifa") || "Chipi14919066";
-let boletos = 1;
-let comprobanteUrl = "";
+let numerosSeleccionados = [];
+let numerosVendidos = [];
 const precioBoleto = 60000;
+
+async function cargarNumerosVendidos() {
+  const snapshot = await getDocs(collection(db, "pedidos"));
+  numerosVendidos = [];
+  snapshot.forEach(d => {
+    const p = d.data();
+    if (p.numeros) numerosVendidos = [...numerosVendidos, ...p.numeros];
+  });
+  generarGrilla();
+}
+
+function generarGrilla() {
+  const grilla = document.querySelector("#grillaNomeros");
+  grilla.innerHTML = "";
+  for (let i = 1; i <= 500; i++) {
+    const vendido = numerosVendidos.includes(i);
+    const seleccionado = numerosSeleccionados.includes(i);
+    let clase = vendido ? "numero-vendido" : seleccionado ? "numero-seleccionado" : "numero-disponible";
+    grilla.innerHTML += `<button class="numero-btn ${clase}" onclick="seleccionarNumero(${i})" ${vendido ? "disabled" : ""}>${i}</button>`;
+  }
+}
+
+window.seleccionarNumero = function(n) {
+  if (numerosVendidos.includes(n)) return;
+  if (numerosSeleccionados.includes(n)) {
+    numerosSeleccionados = numerosSeleccionados.filter(x => x !== n);
+  } else {
+    numerosSeleccionados.push(n);
+  }
+  generarGrilla();
+  actualizarResumen();
+}
+
+function actualizarResumen() {
+  const div = document.querySelector("#numerosSeleccionados");
+  const total = document.querySelector("#totalPagar");
+  if (numerosSeleccionados.length === 0) {
+    div.textContent = "Ninguno aún";
+    total.textContent = "Total: $0 COP";
+  } else {
+    div.textContent = numerosSeleccionados.sort((a,b) => a-b).join(", ");
+    const t = (numerosSeleccionados.length * precioBoleto).toLocaleString("es-CO");
+    total.textContent = `Total: $${t} COP`;
+  }
+}
 
 window.irA = function(pantallaId) {
   document.querySelectorAll(".pantalla").forEach(p => p.classList.add("oculto"));
   document.querySelector("#" + pantallaId).classList.remove("oculto");
   if (pantallaId === "panelAdmin") cargarPedidos();
-}
-
-window.cambiarBoletos = function(dir) {
-  boletos = Math.max(1, Math.min(500, boletos + dir));
-  document.querySelector("#numBoletos").textContent = boletos;
-  const total = (boletos * precioBoleto).toLocaleString("es-CO");
-  document.querySelector("#totalPagar").textContent = `Total: $${total} COP`;
 }
 
 window.copiarNequi = function() {
@@ -219,18 +272,22 @@ window.enviarTodo = async function() {
   const nombre = document.querySelector("#nombreCliente").value;
   const celular = document.querySelector("#celularCliente").value;
   if (!nombre || !celular) { alert("Por favor completa tu nombre y celular"); return; }
+  if (numerosSeleccionados.length === 0) { alert("Por favor selecciona al menos un número"); return; }
   const input = document.querySelector("#inputComprobante");
   if (!input.files[0]) { alert("Por favor sube tu comprobante de pago"); return; }
   const urlComprobante = await subirComprobante();
   if (!urlComprobante) { alert("Error subiendo el comprobante, intenta de nuevo"); return; }
-  const total = (boletos * precioBoleto).toLocaleString("es-CO");
+  const total = (numerosSeleccionados.length * precioBoleto).toLocaleString("es-CO");
   await addDoc(collection(db, "pedidos"), {
-    nombre, celular, boletos,
+    nombre, celular,
+    numeros: numerosSeleccionados,
+    boletos: numerosSeleccionados.length,
     total: `$${total} COP`,
     comprobante: urlComprobante,
     fecha: new Date().toISOString()
   });
-  const mensaje = `Hola! Quiero participar en la rifa 🏆\n\nNombre: ${nombre}\nCelular: ${celular}\nBoletos: ${boletos}\nTotal: $${total} COP\n\nComprobante: ${urlComprobante}`;
+  const nums = numerosSeleccionados.sort((a,b) => a-b).join(", ");
+  const mensaje = `Hola! Quiero participar en la rifa 🏆\n\nNombre: ${nombre}\nCelular: ${celular}\nNúmeros: ${nums}\nBoletos: ${numerosSeleccionados.length}\nTotal: $${total} COP\n\nComprobante: ${urlComprobante}`;
   window.location.href = `https://wa.me/573107681757?text=${encodeURIComponent(mensaje)}`;
 }
 
@@ -244,6 +301,7 @@ async function cargarPedidos() {
   snapshot.forEach(d => {
     const p = d.data();
     totalBoletos += p.boletos;
+    const nums = p.numeros ? p.numeros.sort((a,b) => a-b).join(", ") : "N/A";
     lista.innerHTML += `
       <div class="pedido-card">
         <div class="pedido-header">
@@ -251,7 +309,8 @@ async function cargarPedidos() {
           <button class="btn-borrar" onclick="borrarPedido('${d.id}')">🗑️</button>
         </div>
         <p>📱 ${p.celular}</p>
-        <p>🎟️ ${p.boletos} boletos - ${p.total}</p>
+        <p>🎟️ Números: ${nums}</p>
+        <p>💰 ${p.total}</p>
         ${p.comprobante ? `<a href="${p.comprobante}" target="_blank"><button class="ver-comprobante">👁️ Ver comprobante</button></a>` : ""}
       </div>`;
   });
@@ -315,6 +374,8 @@ const fechaGuardada = localStorage.getItem("fechaRifa");
 if (fotoGuardada) document.querySelector("#fotoPremio").src = fotoGuardada;
 if (nombreGuardado) document.querySelector("#nombrePremio").textContent = nombreGuardado;
 if (fechaGuardada) document.querySelector("#fechaSorteo").textContent = "📅 " + fechaGuardada;
+
+cargarNumerosVendidos();
 </script>
 </body>
 </html>

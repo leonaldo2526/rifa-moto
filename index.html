@@ -231,7 +231,7 @@ window.enviarTodo = async function() {
     fecha: new Date().toISOString()
   });
   const mensaje = `Hola! Quiero participar en la rifa 🏆\n\nNombre: ${nombre}\nCelular: ${celular}\nBoletos: ${boletos}\nTotal: $${total} COP\n\nComprobante: ${urlComprobante}`;
-  window.open(`https://wa.me/573107681757?text=${encodeURIComponent(mensaje)}`);
+  window.location.href = `https://wa.me/573107681757?text=${encodeURIComponent(mensaje)}`;
 }
 
 async function cargarPedidos() {

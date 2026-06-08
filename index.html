@@ -54,17 +54,22 @@
     .tarjeta { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; padding: 30px; }
     .tarjeta h2 { margin-bottom: 20px; color: #ff4444; font-size: 28px; }
     input, textarea { width: 100%; padding: 12px; margin-bottom: 15px; border: none; border-radius: 15px; background-color: #2d0000; color: white; font-size: 15px; border: 1px solid #ff4444; }
+    input[type="color"] { height: 50px; cursor: pointer; }
+    input[type="range"] { border: none; padding: 5px; background: transparent; }
     textarea { height: 80px; resize: none; }
     input::placeholder, textarea::placeholder { color: #aaaaaa; }
     .error { color: #f87171; font-size: 14px; margin-bottom: 10px; }
     .admin-contenido { padding: 20px; }
     .admin-contenido h3 { color: #ff4444; margin-bottom: 15px; margin-top: 20px; font-size: 18px; }
+    .admin-contenido p { color: #aaaaaa; font-size: 14px; margin-bottom: 8px; }
     .cargando { text-align: center; padding: 40px; color: #ff4444; font-size: 18px; }
     .pedido-card { background: #2d0000; border-radius: 10px; padding: 15px; margin-bottom: 10px; border: 1px solid #ff4444; }
     .pedido-card h4 { color: #ffcc00; margin-bottom: 5px; }
     .pedido-card p { color: #aaaaaa; font-size: 14px; margin-bottom: 5px; }
     .pedido-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
     .ver-comprobante { background: #ff4444; color: white; padding: 6px 15px; border-radius: 15px; font-size: 13px; width: auto; margin: 0; }
+    .fila-colores { display: flex; gap: 10px; margin-bottom: 15px; }
+    .fila-colores input[type="color"] { flex: 1; }
   </style>
 </head>
 <body>
@@ -74,15 +79,13 @@
     <h2>🏆 Gran Sorteo</h2>
     <button class="btn-admin" onclick="irA('loginAdmin')">⚙️</button>
   </div>
-
-  <div class="hero">
+  <div class="hero" id="heroSeccion">
     <img id="fotoPremio" src="https://via.placeholder.com/400x250?text=Foto+del+Premio">
     <h1 id="nombrePremio">Moto SBR Bera 150 2024</h1>
     <p class="fecha" id="fechaSorteo">📅 27 de Julio</p>
     <p class="precio-boleto">💰 $60.000 COP por boleto</p>
   </div>
-
-  <div class="seccion">
+  <div class="seccion" id="seccionPrincipal">
     <h2>🎟️ Elige tus números</h2>
     <div class="leyenda">
       <div class="leyenda-item"><div class="leyenda-color" style="background:#16a34a"></div> Disponible</div>
@@ -90,13 +93,11 @@
       <div class="leyenda-item"><div class="leyenda-color" style="background:#dc2626"></div> Vendido</div>
     </div>
     <div class="grilla-numeros" id="grillaNomeros"></div>
-
     <div class="resumen-seleccion" id="resumenSeleccion">
       <h3>🎟️ Tus números seleccionados:</h3>
       <div class="numeros-seleccionados" id="numerosSeleccionados">Ninguno aún</div>
       <div class="total-pagar" id="totalPagar">Total: $0 COP</div>
     </div>
-
     <div class="form-grupo">
       <label>👤 Nombres y Apellidos</label>
       <input type="text" id="nombreCliente" placeholder="Tu nombre completo">
@@ -105,8 +106,7 @@
       <label>📱 Celular</label>
       <input type="tel" id="celularCliente" placeholder="Tu número de celular">
     </div>
-
-    <div class="metodo-pago">
+    <div class="metodo-pago" id="cuadroPago">
       <h3>💳 Modo de pago</h3>
       <div style="font-size:40px;margin-bottom:10px;">💜</div>
       <p style="color:#a855f7;font-weight:bold;margin-bottom:10px;">NEQUI</p>
@@ -114,8 +114,7 @@
       <p class="titular">Titular: Leonaldo</p>
       <button class="btn-copiar" onclick="copiarNequi()">📋 Copiar número</button>
     </div>
-
-    <div class="subir-comprobante">
+    <div class="subir-comprobante" id="cuadroComprobante">
       <h3>📸 Subir comprobante de pago</h3>
       <p style="color:#aaaaaa;font-size:14px;margin-bottom:15px;">Sube la foto de tu comprobante</p>
       <input type="file" id="inputComprobante" accept="image/*" onchange="previewComprobante(this)">
@@ -123,7 +122,6 @@
       <img id="previewImg" class="preview-comprobante">
       <p class="estado-subida" id="estadoSubida"></p>
     </div>
-
     <button class="btn-whatsapp" onclick="enviarTodo()">📲 Enviar por WhatsApp</button>
   </div>
 </div>
@@ -144,6 +142,7 @@
     <h2>⚙️ Panel Admin</h2>
   </div>
   <div class="admin-contenido">
+
     <h3>🎨 Personalizar rifa</h3>
     <input type="text" id="adminFoto" placeholder="URL foto del premio">
     <button onclick="actualizarFoto()">🖼️ Cambiar foto</button>
@@ -151,22 +150,61 @@
     <button onclick="actualizarNombre()">✏️ Cambiar nombre</button>
     <input type="text" id="adminFecha" placeholder="Fecha del sorteo">
     <button onclick="actualizarFecha()">📅 Cambiar fecha</button>
+
+    <h3>🎨 Fondo del inicio</h3>
+    <p>Color sólido:</p>
+    <input type="color" id="colorInicioSolido" value="#1a0000">
+    <button onclick="aplicarColorInicio()">Aplicar color</button>
+    <p>Degradado (2 colores):</p>
+    <div class="fila-colores">
+      <input type="color" id="colorInicio1" value="#1a0000">
+      <input type="color" id="colorInicio2" value="#2d0000">
+    </div>
+    <button onclick="aplicarDegradadoInicio()">Aplicar degradado</button>
+    <p>Color de letras del inicio:</p>
+    <input type="color" id="colorLetrasInicio" value="#ffffff">
+    <button onclick="aplicarLetrasInicio()">Aplicar color letras</button>
+    <p>Tamaño de letras del inicio:</p>
+    <input type="range" id="tamanoLetrasInicio" min="12" max="40" value="18" oninput="aplicarTamanoInicio(this.value)">
+    <p id="tamanoLetrasInicioVal" style="color:#ffcc00">18px</p>
+    <p>Color de cuadros del inicio:</p>
+    <input type="color" id="colorCuadrosInicio" value="#2d0000">
+    <button onclick="aplicarColorCuadrosInicio()">Aplicar color cuadros</button>
+    <button class="btn-secundario" onclick="restaurarInicio()">↩️ Restaurar inicio</button>
+
+    <h3>🎨 Fondo del admin</h3>
+    <p>Color sólido:</p>
+    <input type="color" id="colorAdminSolido" value="#1a0000">
+    <button onclick="aplicarColorAdmin()">Aplicar color</button>
+    <p>Degradado (2 colores):</p>
+    <div class="fila-colores">
+      <input type="color" id="colorAdmin1" value="#1a0000">
+      <input type="color" id="colorAdmin2" value="#2d0000">
+    </div>
+    <button onclick="aplicarDegradadoAdmin()">Aplicar degradado</button>
+    <p>Color de letras del admin:</p>
+    <input type="color" id="colorLetrasAdmin" value="#ffffff">
+    <button onclick="aplicarLetrasAdmin()">Aplicar color letras</button>
+    <p>Tamaño de letras del admin:</p>
+    <input type="range" id="tamanoLetrasAdmin" min="12" max="40" value="16" oninput="aplicarTamanoAdmin(this.value)">
+    <p id="tamanoLetrasAdminVal" style="color:#ffcc00">16px</p>
+    <p>Color de cuadros del admin:</p>
+    <input type="color" id="colorCuadrosAdmin" value="#2d0000">
+    <button onclick="aplicarColorCuadrosAdmin()">Aplicar color cuadros</button>
+    <button class="btn-secundario" onclick="restaurarAdmin()">↩️ Restaurar admin</button>
+
+    <h3>✍️ Marcar número manualmente</h3>
+    <input type="number" id="numeroManual" placeholder="Número (ej: 45)" min="1" max="500">
+    <input type="text" id="nombreManual" placeholder="Nombre de la persona">
+    <button onclick="marcarManual()">🔴 Marcar como vendido</button>
+
     <h3>📋 Pedidos recibidos</h3>
     <div id="listaPedidos"><div class="cargando">⏳ Cargando pedidos...</div></div>
-    <h3>✍️ Marcar número manualmente</h3>
-<input type="number" id="numeroManual" placeholder="Número (ej: 45)" min="1" max="500">
-<input type="text" id="nombreManual" placeholder="Nombre de la persona">
-<button onclick="marcarManual()">🔴 Marcar como vendido</button>
-    <h3>🎨 Color del inicio</h3>
-<input type="color" id="colorInicio" value="#1a0000">
-<button onclick="aplicarColorInicio()">Aplicar color inicio</button>
 
-<h3>🎨 Color del admin</h3>
-<input type="color" id="colorAdmin" value="#1a0000">
-<button onclick="aplicarColorAdmin()">Aplicar color admin</button>
     <h3>🔑 Cambiar contraseña</h3>
     <input type="password" id="nuevaPass" placeholder="Nueva contraseña">
     <button onclick="cambiarPass()">🔑 Cambiar</button>
+
   </div>
 </div>
 
@@ -346,6 +384,25 @@ window.entrarAdmin = function() {
   }
 }
 
+window.marcarManual = async function() {
+  const numero = parseInt(document.querySelector("#numeroManual").value);
+  const nombre = document.querySelector("#nombreManual").value;
+  if (!numero || !nombre) { alert("Pon el número y el nombre"); return; }
+  if (numero < 1 || numero > 500) { alert("El número debe ser entre 1 y 500"); return; }
+  await addDoc(collection(db, "pedidos"), {
+    nombre, celular: "Manual",
+    numeros: [numero],
+    boletos: 1,
+    total: "$60.000 COP",
+    comprobante: "",
+    fecha: new Date().toISOString()
+  });
+  document.querySelector("#numeroManual").value = "";
+  document.querySelector("#nombreManual").value = "";
+  alert(`✅ Número ${numero} marcado como vendido`);
+  cargarPedidos();
+}
+
 window.actualizarFoto = function() {
   const url = document.querySelector("#adminFoto").value;
   if (!url) { alert("Pega un link de foto"); return; }
@@ -369,38 +426,112 @@ window.actualizarFecha = function() {
   localStorage.setItem("fechaRifa", fecha);
   alert("✅ Fecha actualizada");
 }
-window.marcarManual = async function() {
-  const numero = parseInt(document.querySelector("#numeroManual").value);
-  const nombre = document.querySelector("#nombreManual").value;
-  if (!numero || !nombre) { alert("Pon el número y el nombre"); return; }
-  if (numero < 1 || numero > 500) { alert("El número debe ser entre 1 y 500"); return; }
-  await addDoc(collection(db, "pedidos"), {
-    nombre, celular: "Manual",
-    numeros: [numero],
-    boletos: 1,
-    total: "$60.000 COP",
-    comprobante: "",
-    fecha: new Date().toISOString()
-  });
-  document.querySelector("#numeroManual").value = "";
-  document.querySelector("#nombreManual").value = "";
-  alert(`✅ Número ${numero} marcado como vendido`);
-  cargarPedidos();
-}
+
+// PERSONALIZAR INICIO
 window.aplicarColorInicio = function() {
-  const color = document.querySelector("#colorInicio").value;
+  const color = document.querySelector("#colorInicioSolido").value;
   document.querySelector("#inicio").style.background = color;
-  document.querySelector(".hero").style.background = color;
-  localStorage.setItem("colorInicioRifa", color);
+  document.querySelector("#heroSeccion").style.background = color;
+  document.querySelector("#seccionPrincipal").style.background = color;
+  localStorage.setItem("bgInicio", color);
+  localStorage.setItem("bgInicioTipo", "solido");
 }
 
+window.aplicarDegradadoInicio = function() {
+  const c1 = document.querySelector("#colorInicio1").value;
+  const c2 = document.querySelector("#colorInicio2").value;
+  const degradado = `linear-gradient(135deg, ${c1}, ${c2})`;
+  document.querySelector("#inicio").style.background = degradado;
+  document.querySelector("#heroSeccion").style.background = degradado;
+  document.querySelector("#seccionPrincipal").style.background = degradado;
+  localStorage.setItem("bgInicio", degradado);
+  localStorage.setItem("bgInicioTipo", "degradado");
+}
+
+window.aplicarLetrasInicio = function() {
+  const color = document.querySelector("#colorLetrasInicio").value;
+  document.querySelector("#inicio").style.color = color;
+  localStorage.setItem("letrasInicio", color);
+}
+
+window.aplicarTamanoInicio = function(val) {
+  document.querySelector("#tamanoLetrasInicioVal").textContent = val + "px";
+  document.querySelector("#inicio").style.fontSize = val + "px";
+  localStorage.setItem("tamanoInicio", val);
+}
+
+window.aplicarColorCuadrosInicio = function() {
+  const color = document.querySelector("#colorCuadrosInicio").value;
+  document.querySelector("#cuadroPago").style.background = color;
+  document.querySelector("#cuadroComprobante").style.background = color;
+  document.querySelector("#resumenSeleccion").style.background = color;
+  localStorage.setItem("cuadrosInicio", color);
+}
+
+window.restaurarInicio = function() {
+  document.querySelector("#inicio").style.background = "#1a0000";
+  document.querySelector("#heroSeccion").style.background = "#2d0000";
+  document.querySelector("#seccionPrincipal").style.background = "";
+  document.querySelector("#inicio").style.color = "white";
+  document.querySelector("#inicio").style.fontSize = "";
+  document.querySelector("#cuadroPago").style.background = "#2d0000";
+  document.querySelector("#cuadroComprobante").style.background = "#2d0000";
+  document.querySelector("#resumenSeleccion").style.background = "#2d0000";
+  localStorage.removeItem("bgInicio");
+  localStorage.removeItem("letrasInicio");
+  localStorage.removeItem("tamanoInicio");
+  localStorage.removeItem("cuadrosInicio");
+  alert("✅ Inicio restaurado");
+}
+
+// PERSONALIZAR ADMIN
 window.aplicarColorAdmin = function() {
-  const color = document.querySelector("#colorAdmin").value;
+  const color = document.querySelector("#colorAdminSolido").value;
   document.querySelector("#panelAdmin").style.background = color;
   document.querySelector("#loginAdmin").style.background = color;
-  localStorage.setItem("colorAdminRifa", color);
+  localStorage.setItem("bgAdmin", color);
 }
-  window.cambiarPass = function() {
+
+window.aplicarDegradadoAdmin = function() {
+  const c1 = document.querySelector("#colorAdmin1").value;
+  const c2 = document.querySelector("#colorAdmin2").value;
+  const degradado = `linear-gradient(135deg, ${c1}, ${c2})`;
+  document.querySelector("#panelAdmin").style.background = degradado;
+  document.querySelector("#loginAdmin").style.background = degradado;
+  localStorage.setItem("bgAdmin", degradado);
+}
+
+window.aplicarLetrasAdmin = function() {
+  const color = document.querySelector("#colorLetrasAdmin").value;
+  document.querySelector("#panelAdmin").style.color = color;
+  localStorage.setItem("letrasAdmin", color);
+}
+
+window.aplicarTamanoAdmin = function(val) {
+  document.querySelector("#tamanoLetrasAdminVal").textContent = val + "px";
+  document.querySelector("#panelAdmin").style.fontSize = val + "px";
+  localStorage.setItem("tamanoAdmin", val);
+}
+
+window.aplicarColorCuadrosAdmin = function() {
+  const color = document.querySelector("#colorCuadrosAdmin").value;
+  document.querySelectorAll(".pedido-card").forEach(el => el.style.background = color);
+  localStorage.setItem("cuadrosAdmin", color);
+}
+
+window.restaurarAdmin = function() {
+  document.querySelector("#panelAdmin").style.background = "#1a0000";
+  document.querySelector("#loginAdmin").style.background = "#1a0000";
+  document.querySelector("#panelAdmin").style.color = "white";
+  document.querySelector("#panelAdmin").style.fontSize = "";
+  localStorage.removeItem("bgAdmin");
+  localStorage.removeItem("letrasAdmin");
+  localStorage.removeItem("tamanoAdmin");
+  localStorage.removeItem("cuadrosAdmin");
+  alert("✅ Admin restaurado");
+}
+
+window.cambiarPass = function() {
   const nueva = document.querySelector("#nuevaPass").value;
   if (!nueva) { alert("Escribe una nueva contraseña"); return; }
   contrasena = nueva;
@@ -409,16 +540,29 @@ window.aplicarColorAdmin = function() {
   alert("✅ Contraseña cambiada");
 }
 
+// Cargar estilos guardados
+const bgInicio = localStorage.getItem("bgInicio");
+const letrasInicio = localStorage.getItem("letrasInicio");
+const tamanoInicio = localStorage.getItem("tamanoInicio");
+const cuadrosInicio = localStorage.getItem("cuadrosInicio");
+const bgAdmin = localStorage.getItem("bgAdmin");
+const letrasAdmin = localStorage.getItem("letrasAdmin");
+const tamanoAdmin = localStorage.getItem("tamanoAdmin");
 const fotoGuardada = localStorage.getItem("fotoRifa");
 const nombreGuardado = localStorage.getItem("nombreRifa");
 const fechaGuardada = localStorage.getItem("fechaRifa");
+
+if (bgInicio) { document.querySelector("#inicio").style.background = bgInicio; document.querySelector("#heroSeccion").style.background = bgInicio; }
+if (letrasInicio) document.querySelector("#inicio").style.color = letrasInicio;
+if (tamanoInicio) document.querySelector("#inicio").style.fontSize = tamanoInicio + "px";
+if (cuadrosInicio) { document.querySelector("#cuadroPago").style.background = cuadrosInicio; document.querySelector("#cuadroComprobante").style.background = cuadrosInicio; document.querySelector("#resumenSeleccion").style.background = cuadrosInicio; }
+if (bgAdmin) { document.querySelector("#panelAdmin").style.background = bgAdmin; document.querySelector("#loginAdmin").style.background = bgAdmin; }
+if (letrasAdmin) document.querySelector("#panelAdmin").style.color = letrasAdmin;
+if (tamanoAdmin) document.querySelector("#panelAdmin").style.fontSize = tamanoAdmin + "px";
 if (fotoGuardada) document.querySelector("#fotoPremio").src = fotoGuardada;
 if (nombreGuardado) document.querySelector("#nombrePremio").textContent = nombreGuardado;
 if (fechaGuardada) document.querySelector("#fechaSorteo").textContent = "📅 " + fechaGuardada;
-const colorInicioGuardado = localStorage.getItem("colorInicioRifa");
-const colorAdminGuardado = localStorage.getItem("colorAdminRifa");
-if (colorInicioGuardado) { document.querySelector("#inicio").style.background = colorInicioGuardado; document.querySelector(".hero").style.background = colorInicioGuardado; }
-if (colorAdminGuardado) { document.querySelector("#panelAdmin").style.background = colorAdminGuardado; document.querySelector("#loginAdmin").style.background = colorAdminGuardado; }
+
 cargarNumerosVendidos();
 </script>
 </body>
